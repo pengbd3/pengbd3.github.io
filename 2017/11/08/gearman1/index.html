@@ -1,0 +1,895 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Microsoft YaHei:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Lobster Two:300,300italic,400,400italic,700,700italic|Menlo:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="PHP学习,gearman," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="一、GEARMAN简介 Gearman是一个分发任务的程序框架，gearman 提供三个部分 client(客户端) jobServer(任务分发服务) worker（作业），它会对作业进行排队自动分配到一系列机器上。gearman跨语言跨平台，很方便的实现异步后台任务">
+<meta name="keywords" content="PHP学习,gearman">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用gearman实现PHP的多进程任务处理">
+<meta property="og:url" content="https://pengbobo.com/2017/11/08/gearman1/index.html">
+<meta property="og:site_name" content="pengbd3">
+<meta property="og:description" content="一、GEARMAN简介 Gearman是一个分发任务的程序框架，gearman 提供三个部分 client(客户端) jobServer(任务分发服务) worker（作业），它会对作业进行排队自动分配到一系列机器上。gearman跨语言跨平台，很方便的实现异步后台任务">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/6.png">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/1.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/2.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/5.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/7.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/9.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/10.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/11.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/12.jpg">
+<meta property="og:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/13.jpg">
+<meta property="og:updated_time" content="2017-11-23T07:04:50.428Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用gearman实现PHP的多进程任务处理">
+<meta name="twitter:description" content="一、GEARMAN简介 Gearman是一个分发任务的程序框架，gearman 提供三个部分 client(客户端) jobServer(任务分发服务) worker（作业），它会对作业进行排队自动分配到一系列机器上。gearman跨语言跨平台，很方便的实现异步后台任务">
+<meta name="twitter:image" content="http://oih4t7o53.bkt.clouddn.com/gearman1/6.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":true},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: 'OIKTIGVHJ8',
+      apiKey: 'c983c892df553f29c850fc9bf9ef4682',
+      indexName: 'MyHexo',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://pengbobo.com/2017/11/08/gearman1/"/>
+
+
+
+
+
+  <title>使用gearman实现PHP的多进程任务处理 | pengbd3</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?301fa2031c628171b81ac2374cd741dc";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">pengbd3</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  
+  <div class="algolia-popup popup search-popup">
+    <div class="algolia-search">
+      <div class="algolia-search-input-icon">
+        <i class="fa fa-search"></i>
+      </div>
+      <div class="algolia-search-input" id="algolia-search-input"></div>
+    </div>
+
+    <div class="algolia-results">
+      <div id="algolia-stats"></div>
+      <div id="algolia-hits"></div>
+      <div id="algolia-pagination" class="algolia-pagination"></div>
+    </div>
+
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+  </div>
+
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://pengbobo.com/2017/11/08/gearman1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="pengbd3">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/img/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="pengbd3">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用gearman实现PHP的多进程任务处理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-11-08T14:50:05+08:00">
+                2017-11-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PHP学习/" itemprop="url" rel="index">
+                    <span itemprop="name">PHP学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/11/08/gearman1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/11/08/gearman1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h5 id="一、GEARMAN简介"><a href="#一、GEARMAN简介" class="headerlink" title="一、GEARMAN简介"></a>一、GEARMAN简介</h5><span itemprop="image" itemscope="" itemtype="http://schema.org/ImageObject"><img itemprop="url image" src="http://oih4t7o53.bkt.clouddn.com/gearman1/6.png" class="full-image"><meta itemprop="width" content="auto"><meta itemprop="height" content="auto"></span>
+<p>Gearman是一个分发任务的程序框架，gearman 提供三个部分 client(客户端) jobServer(任务分发服务) worker（作业），它会对作业进行排队自动分配到一系列机器上。gearman跨语言跨平台，很方便的实现异步后台任务<br><a id="more"></a></p>
+<h5 id="二、安装GEARMAN源码包"><a href="#二、安装GEARMAN源码包" class="headerlink" title="二、安装GEARMAN源码包"></a>二、安装GEARMAN源码包</h5><p><code>github下载：https://github.com/gearman/gearmand/releases</code></p>
+<h5 id="三、解压编译安装GEARMAN源码包"><a href="#三、解压编译安装GEARMAN源码包" class="headerlink" title="三、解压编译安装GEARMAN源码包"></a>三、解压编译安装GEARMAN源码包</h5><p>先安装gearmand相关依赖包<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">yum install -y libevent-dev uuid-dev boost boost-devel gperf</div><div class="line">tar -zxvf gearmand-1.1.17.tar.gz</div><div class="line">cd gearmand-1.1.17</div><div class="line">./configure prefix=/usr/local/gearmand # 指定安装路径，方便后续PHP扩展安装  </div><div class="line"></div><div class="line">make &amp;&amp; make install</div><div class="line"><span class="meta">#</span> 加入系统变量</div><div class="line">vim /etc/profile</div><div class="line">PATH=$PATH:/usr/local/webserver/php/bin:/usr/local/webserver/mysql/bin</div><div class="line">export PATH</div><div class="line">source /etc/profile</div></pre></td></tr></table></figure></p>
+<p>安装完成以后可以使用 <code>gearmand -d</code> 命令测试服务是否能正常开启。<code>htop</code> 命令查看进程<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/1.jpg" alt="安装成功后的进程展示"></p>
+<h5 id="四、安装PHP的gearman扩展"><a href="#四、安装PHP的gearman扩展" class="headerlink" title="四、安装PHP的gearman扩展"></a>四、安装PHP的gearman扩展</h5><p><code>pecl官网下载：http://pecl.php.net/package/gearman</code><br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/2.jpg" alt="gearman扩展下载页面"><br>注：PHP 7扩展可以前往 <code>https://github.com/wcgallego/pecl-gearman/tree/master</code> 下载<br>解压、编译、安装<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"> tar -zxvf gearman-1.1.2.tar.gz</div><div class="line"> cd gearman-1.1.2</div><div class="line"> ./configure --with-php-config=/usr/local/php/bin/php-config --with-gearman=/usr/local/gearmand</div><div class="line"> ```  </div><div class="line">注：最好带上--with-gearman参数，不然会报libgearman尚未安装的错误</div><div class="line">![gearman扩展编译结果](http://oih4t7o53.bkt.clouddn.com/gearman1/3.jpg)  </div><div class="line">然后进行编译安装  </div><div class="line">`make &amp;&amp; make install`  </div><div class="line">![gearman扩展编译安装成功](http://oih4t7o53.bkt.clouddn.com/gearman1/4.jpg)  </div><div class="line">``` </div><div class="line">php.ini # 增加配置  </div><div class="line">extension_dir=/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/</div><div class="line">extension=gearman.so</div></pre></td></tr></table></figure></p>
+<p>重启<code>PHP</code>，使用命令 <code>php -m | grep gearman</code> 检查扩展是否添加成功<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/5.jpg" alt="gearman扩展成功安装实例图">  </p>
+<h5 id="五、简单测试gearman功能"><a href="#五、简单测试gearman功能" class="headerlink" title="五、简单测试gearman功能"></a>五、简单测试gearman功能</h5><p>gearman中请求的处理过程一般涉及三种角色：client-&gt;job-&gt;worker<br>其中client是请求的发起者<br>job是请求的调度者，用于把客户的请求分发到不同的worker上进行工作<br>worker是请求的处理者  </p>
+<p>比如这里我们要处理client向job发送一个请求，来计算两个数之和，job负责调度worker来具体实现计算两数之和。<br>创建client.php和work.php文件<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/7.jpg" alt="gearman扩展成功安装实例图"><br>参照官方事例 <code>http://gearman.org/examples/reverse/</code><br> <code>client.php</code> 代码如下<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"><span class="comment">//创建一个客户端对象</span></div><div class="line">$client = <span class="keyword">new</span> GearmanClient();</div><div class="line"><span class="comment">//添加一个job服务</span></div><div class="line">$client-&gt;addServer(<span class="string">'127.0.0.1'</span>,<span class="number">4730</span>); <span class="comment">//默认参数主机地址：127.0.0.1 端口：4730</span></div><div class="line"></div><div class="line"><span class="keyword">echo</span> <span class="string">"发送job\n"</span>;</div><div class="line"><span class="comment">//同步发送数据</span></div><div class="line">$result=$client-&gt;doNormal(<span class="string">"worker"</span>,json_encode(<span class="keyword">array</span>(<span class="string">'name'</span>=&gt;<span class="string">'fate'</span>),<span class="number">1</span>));</div><div class="line"></div><div class="line"><span class="keyword">if</span>($result)&#123;</div><div class="line">    <span class="keyword">echo</span> <span class="string">"Success: $result\n"</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p> <code>worker.php</code> 代码如下<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"></div><div class="line"><span class="comment">//创建一个属于你自己的worker对象</span></div><div class="line">$worker = <span class="keyword">new</span> GearmanWorker();</div><div class="line"><span class="comment">//添加一个work服务（）</span></div><div class="line">$worker-&gt;addServer(<span class="string">'127.0.0.1'</span>, <span class="number">4730</span>);</div><div class="line"><span class="comment">//通知服务器，处理函数名为send任务</span></div><div class="line">$worker-&gt;addFunction(<span class="string">"worker"</span>, <span class="string">"sayName"</span>);</div><div class="line"><span class="comment">//死循环等待任务介入</span></div><div class="line"><span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">    <span class="keyword">echo</span> <span class="string">"等待job处理\n"</span>;</div><div class="line">    <span class="comment">//阻塞执行任务，等待任务处理完成</span></div><div class="line">    $result = $worker-&gt;work();</div><div class="line">    <span class="comment">//如果执行失败将会跳出循环</span></div><div class="line">    <span class="keyword">if</span> ($worker-&gt;returnCode() != GEARMAN_SUCCESS) &#123;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">/**</span></div><div class="line"> * 任务实现</div><div class="line"> * <span class="doctag">@param</span> GearmanJob $job 任务执行者</div><div class="line"> * <span class="doctag">@return</span> string</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">sayName</span><span class="params">(GearmanJob $job)</span></span></div><div class="line">&#123;</div><div class="line">    $workload = $job-&gt;workload();</div><div class="line">    <span class="keyword">echo</span> <span class="string">"返回任务的句柄:"</span> . $job-&gt;handle() . <span class="string">"\n"</span>;</div><div class="line">    <span class="keyword">echo</span> <span class="string">"打印参数: $workload\n"</span>;</div><div class="line">    $result = json_decode($workload, <span class="number">1</span>);</div><div class="line">    $answer = <span class="string">"我叫:"</span> . $result[<span class="string">'name'</span>];</div><div class="line">    <span class="keyword">echo</span> <span class="string">"返回值:$answer\n"</span>;</div><div class="line">    <span class="comment">//等待2秒，模拟服务处理时间</span></div><div class="line">    sleep(<span class="number">2</span>);</div><div class="line">    <span class="keyword">return</span> $answer;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>一切准备工作就绪，现在让我们启动gearmand服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># 创建gearmand服务用户</div><div class="line">adduser -M -G www gearmand</div><div class="line"># 创建进程代号文件夹</div><div class="line">mkdir -p /var/run/gearmand</div><div class="line"># 修改所属用户与所属组</div><div class="line">chown gearmand:gearmand /var/run/gearmand</div><div class="line"># 启动</div><div class="line">gearmand -d -p 4730 -u gearmand -P /var/run/gearmand/gearmand.pid -l /var/log/gearmand/gearmand.log</div></pre></td></tr></table></figure></p>
+<p>使用 <code>htop</code> 命令查看是否启动成功<br>由于我是在虚拟机服务器做的测试，所以先将文件传入服务器中<br>分别打开两个终端先后执行 <code>php /data/worker.php</code> <code>php /data/client.php</code> </p>
+<p>结果如下：<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/9.jpg" alt="gearman服务端"><br>服务端<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/10.jpg" alt="gearman客户端"><br>客户端  </p>
+<h5 id="六、gearman异步处理任务"><a href="#六、gearman异步处理任务" class="headerlink" title="六、gearman异步处理任务"></a>六、gearman异步处理任务</h5><p>大多时候执行任务消耗时间比较长我们将考虑到异步去处理任务，下面我们将演示常见的邮件发送的事例<br>参照官方事例 <code>http://gearman.org/examples/send-emails/</code><br> <code>client.php</code><br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"><span class="comment">//填写邮件相关内容</span></div><div class="line">$email = <span class="string">'fate@163.com'</span>;</div><div class="line">$subject = <span class="string">"我是邮件主题!"</span>;</div><div class="line">$body = <span class="string">'我是邮件内容!'</span>;</div><div class="line">$data = <span class="keyword">array</span>(<span class="string">'email'</span> =&gt; $email, <span class="string">'subject'</span> =&gt; $subject, <span class="string">'body'</span> =&gt; $body);</div><div class="line">$client = <span class="keyword">new</span> GearmanClient();</div><div class="line">$client-&gt;addServer(<span class="string">'127.0.0.1'</span>, <span class="number">4730</span>);</div><div class="line">$result = $client-&gt;doBackground(<span class="string">"worker"</span>, json_encode($data, <span class="number">1</span>));</div><div class="line"><span class="keyword">echo</span> <span class="string">"请求已提交服务器\n"</span>;</div></pre></td></tr></table></figure></p>
+<p><code>worker.php</code><br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"></div><div class="line">$worker = <span class="keyword">new</span> GearmanWorker();</div><div class="line">$worker-&gt;addServer(<span class="string">'127.0.0.1'</span>, <span class="number">4730</span>);</div><div class="line"></div><div class="line">$worker-&gt;addFunction(<span class="string">"worker"</span>, <span class="string">'sendEmail'</span>);</div><div class="line"></div><div class="line"><span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">    <span class="keyword">echo</span> <span class="string">"等待job处理\n"</span>;</div><div class="line">    <span class="comment">//阻塞执行任务，等待任务处理完成</span></div><div class="line">    $result = $worker-&gt;work();</div><div class="line">    <span class="comment">//如果执行失败将会跳出循环</span></div><div class="line">    <span class="keyword">if</span> ($worker-&gt;returnCode() != GEARMAN_SUCCESS) &#123;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">sendEmail</span><span class="params">(GearmanJob $job)</span></span></div><div class="line">&#123;</div><div class="line">    $workload = json_decode($job-&gt;workload(), <span class="number">1</span>);</div><div class="line">    <span class="keyword">echo</span> <span class="string">"正在发送邮件: "</span> . print_r($workload, <span class="number">1</span>);</div><div class="line">    <span class="comment">// 这里存放你需要实际发送的邮件的实现方法</span></div><div class="line">    <span class="comment">// 等待3秒模拟发送邮件所需时长</span></div><div class="line">    sleep(<span class="number">3</span>);</div><div class="line">    <span class="keyword">echo</span> <span class="string">"发送邮件&#123;$workload['email']&#125;成功\n"</span>;</div><div class="line">    <span class="comment">//mail($workload-&gt;email, $workload-&gt;subject, $workload-&gt;body);</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>分别打开两个终端先后执行 <code>php /data/worker.php</code> <code>php /data/client.php</code><br>结果如下：<br><img src="http://oih4t7o53.bkt.clouddn.com/gearman1/11.jpg" alt="gearman服务端/客户端">  </p>
+<h5 id="七、gearman同步并行处理任务"><a href="#七、gearman同步并行处理任务" class="headerlink" title="七、gearman同步并行处理任务"></a>七、gearman同步并行处理任务</h5><p>通常某些时候我们会遇到任务并行处理的需求，例如抢购活动。这里我将采用gearman的addTask来实现累加和。<br> <code>client.php</code><br> <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"><span class="comment">//</span></div><div class="line">$sum = <span class="number">0</span>;</div><div class="line">$client = <span class="keyword">new</span> GearmanClient();</div><div class="line">$client-&gt;addServer(<span class="string">'127.0.0.1'</span>, <span class="number">4730</span>);</div><div class="line"></div><div class="line"><span class="comment">//可以通过setCompleteCallback函数给计算结果返回给客户端</span></div><div class="line">$client-&gt;setCompleteCallback(<span class="function"><span class="keyword">function</span><span class="params">(GearmanTask $task)</span><span class="title">use</span><span class="params">(&amp;$sum)</span></span>&#123;</div><div class="line">    $sum = $task-&gt;data();</div><div class="line">    <span class="keyword">echo</span> <span class="string">"计算结果为:"</span>.$sum.<span class="string">"\n"</span>;</div><div class="line">&#125;);</div><div class="line"><span class="comment">//添加5个需要累加和的任务</span></div><div class="line">$client-&gt;addTask(<span class="string">'Sum'</span>, json_encode(<span class="keyword">array</span>(<span class="number">1</span>, <span class="number">100</span>)));</div><div class="line">$client-&gt;addTask(<span class="string">'Sum'</span>, json_encode(<span class="keyword">array</span>(<span class="number">100</span>, <span class="number">200</span>)));</div><div class="line">$client-&gt;addTask(<span class="string">'Sum'</span>, json_encode(<span class="keyword">array</span>(<span class="number">200</span>, <span class="number">300</span>)));</div><div class="line">$client-&gt;addTask(<span class="string">'Sum'</span>, json_encode(<span class="keyword">array</span>(<span class="number">300</span>, <span class="number">400</span>)));</div><div class="line">$client-&gt;addTask(<span class="string">'Sum'</span>, json_encode(<span class="keyword">array</span>(<span class="number">400</span>, <span class="number">500</span>)));</div><div class="line"></div><div class="line"><span class="comment">//运行队列中的任务，do系列不需要runTask()</span></div><div class="line">$client-&gt;runTasks();</div></pre></td></tr></table></figure></p>
+<p> <code>worker.php</code><br> <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"></div><div class="line">$worker = <span class="keyword">new</span> GearmanWorker();</div><div class="line">$worker-&gt;addServer(<span class="string">'127.0.0.1'</span>, <span class="number">4730</span>);</div><div class="line"></div><div class="line">$worker-&gt;addFunction(<span class="string">"Sum"</span>, <span class="string">'Add'</span>);</div><div class="line"></div><div class="line"><span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line">    <span class="keyword">echo</span> <span class="string">"等待job处理\n"</span>;</div><div class="line">    <span class="comment">//阻塞执行任务，等待任务处理完成</span></div><div class="line">    $result = $worker-&gt;work();</div><div class="line">    <span class="comment">//如果执行失败将会跳出循环</span></div><div class="line">    <span class="keyword">if</span> ($worker-&gt;returnCode() != GEARMAN_SUCCESS) &#123;</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">Add</span><span class="params">(GearmanJob $job)</span></span></div><div class="line">&#123;</div><div class="line">    $sum=<span class="number">0</span>;</div><div class="line">    $workload = json_decode($job-&gt;workload(), <span class="number">1</span>);</div><div class="line">    sleep(<span class="number">1</span>);</div><div class="line">    <span class="keyword">for</span> ($i=$workload[<span class="number">0</span>];$i&lt;=$workload[<span class="number">1</span>];++$i)&#123;</div><div class="line">        $sum+=$i;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> $sum;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p> 结果如下：<br> <img src="http://oih4t7o53.bkt.clouddn.com/gearman1/12.jpg" alt="gearman服务端/客户端"><br> 细心的朋友会发现执行过程和doNormal的方法单个执行差不多，没有达到预期并行处理的效果。原因在与我们只开启一个worker，为了方便演示这里我复制4个ssh连接，分别在启动服务端可得到如下的结果:<br>  <img src="http://oih4t7o53.bkt.clouddn.com/gearman1/13.jpg" alt="gearman服务端/客户端"><br>  可发现基本是1秒处理完所有任务,这里并行处理任务就演示完成了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="/path/to/wechat-reward-image" alt="pengbd3 WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="/path/to/alipay-reward-image" alt="pengbd3 Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PHP学习/" rel="tag"># PHP学习</a>
+          
+            <a href="/tags/gearman/" rel="tag"># gearman</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/24/grentench/" rel="next" title="blog 首次创建">
+                <i class="fa fa-chevron-left"></i> blog 首次创建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/09/gearman2/" rel="prev" title="利用mysql做GEARMAN的持久化">
+                利用mysql做GEARMAN的持久化 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div id="sidebar-dimmer"></div>
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/img/avatar.jpg"
+               alt="pengbd3" />
+          <p class="site-author-name" itemprop="name">pengbd3</p>
+           
+              <p class="site-description motion-element" itemprop="description">工作使我快乐</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/pengbd3" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#一、GEARMAN简介"><span class="nav-number">1.</span> <span class="nav-text">一、GEARMAN简介</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#二、安装GEARMAN源码包"><span class="nav-number">2.</span> <span class="nav-text">二、安装GEARMAN源码包</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#三、解压编译安装GEARMAN源码包"><span class="nav-number">3.</span> <span class="nav-text">三、解压编译安装GEARMAN源码包</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#四、安装PHP的gearman扩展"><span class="nav-number">4.</span> <span class="nav-text">四、安装PHP的gearman扩展</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#五、简单测试gearman功能"><span class="nav-number">5.</span> <span class="nav-text">五、简单测试gearman功能</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#六、gearman异步处理任务"><span class="nav-number">6.</span> <span class="nav-text">六、gearman异步处理任务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#七、gearman同步并行处理任务"><span class="nav-number">7.</span> <span class="nav-text">七、gearman同步并行处理任务</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">pengbd3</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://pengbd3.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'https://pengbobo.com/2017/11/08/gearman1/';
+          this.page.identifier = '2017/11/08/gearman1/';
+          this.page.title = '使用gearman实现PHP的多进程任务处理';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pengbd3.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/algolia-instant-search/instantsearch.min.css">
+
+  
+  
+  <script src="/lib/algolia-instant-search/instantsearch.min.js"></script>
+  
+
+  <script src="/js/src/algolia-search.js?v=5.1.1"></script>
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
