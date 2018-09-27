@@ -31,8 +31,8 @@ select count(*) total from goodsbarcode  where goodsid in(
 |参数名称|类型|非必须|备注|
 |:--|--:|--|--:|
 | lastmoddate | string(255) | N | 最后修改时间,默认值2015-01-01 00:00:00。只传入当前参数执行SQL1 |
-| start | int(11) | N | 取数起始值,当该参有值则end参数为必填项。包含当前参数执行SQL2|
-| end | int(11) | N | 取数截止值,当该参有值则start参数为必填项。包含当前参数执行SQL2|
+| start | int(11) | N | 取数起始值,当该参有值则end、lastmoddate参数为必填项。包含当前参数执行SQL2|
+| end | int(11) | N | 取数截止值,当该参有值则start、lastmoddate参数为必填项。包含当前参数执行SQL2|
 | barcodes | string(255) | N | 条码，格式实例:'808631967000240','808631967000241'。包含当前参数执行SQL3 |
 
 ```sql
